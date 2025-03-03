@@ -288,6 +288,37 @@ register(
     width=16,
 )
 
+
+# DoorKey Deterministic
+register(
+    id="MiniGrid-DoorKeyDet-5x5",
+    entry_point="xminigrid.envs.minigrid.doorkey_deterministic:DoorKeyDeterministic",
+    height=5,
+    width=5,
+)
+
+register(
+    id="MiniGrid-DoorKeyDet-6x6",
+    entry_point="xminigrid.envs.minigrid.doorkey_deterministic:DoorKeyDeterministic",
+    height=6,
+    width=6,
+)
+
+register(
+    id="MiniGrid-DoorKeyDet-8x8",
+    entry_point="xminigrid.envs.minigrid.doorkey_deterministic:DoorKeyDeterministic",
+    height=8,
+    width=8,
+)
+
+register(
+    id="MiniGrid-DoorKeyDet-16x16",
+    entry_point="xminigrid.envs.minigrid.doorkey_deterministic:DoorKeyDeterministic",
+    height=16,
+    width=16,
+)
+
+
 # Empty
 register(
     id="MiniGrid-Empty-5x5",
@@ -406,3 +437,6 @@ register(
     id="MiniGrid-UnlockPickUp",
     entry_point="xminigrid.envs.minigrid.unlockpickup:UnlockPickUp",
 )
+
+
+
