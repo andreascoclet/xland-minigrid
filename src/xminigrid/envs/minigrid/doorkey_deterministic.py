@@ -17,6 +17,8 @@ _rule_encoding = EmptyRule().encode()[None, ...]
 
 class DoorKeyDeterministic(DoorKey):
     def _generate_problem(self, params: EnvParams, key: jax.Array)-> State[EnvCarry]:
+        print(key)
+        print(type(key))
         if key.shape[0] == 1:  # If key has only one element, behave like DoorKey
             return super()._generate_problem(params, key)
         
