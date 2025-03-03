@@ -17,6 +17,9 @@ _rule_encoding = EmptyRule().encode()[None, ...]
 
 class DoorKeyDeterministic(DoorKey):
     def _generate_problem(self, params: EnvParams, key: jax.Array)-> State[EnvCarry]:
+        if key.shape[0] == 1:  # If key has only one element, behave like DoorKey
+            return super()._generate_problem(params, key)
+        
         door_pos, wall_pos, key_x, key_y, seed = key
 
         seed = jax.random.PRNGKey(seed.astype(jnp.uint32))
