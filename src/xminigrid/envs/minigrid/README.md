@@ -70,7 +70,7 @@ Example Code
 
 Here’s a complete example of how to use the DoorKeyDeterministic environment:
 
-python
+``` python
 import jax
 import xminigrid
 from matplotlib import pyplot as plt
@@ -106,3 +106,5 @@ show_img(env.render(env_params, timestep), dpi=64)
 action = 2  # Example action (e.g., move forward)
 timestep = jax.jit(env.step)(env_params, timestep, action)
 show_img(env.render(env_params, timestep), dpi=64)
+
+```
