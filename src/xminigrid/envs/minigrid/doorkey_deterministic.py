@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
+
+from typing import Optional
 from ...core.constants import TILES_REGISTRY, Colors, Tiles
 from ...core.goals import AgentOnTileGoal
 from ...core.grid import coordinates_mask, room, sample_coordinates, sample_direction, vertical_line
@@ -15,19 +18,60 @@ from .doorkey import DoorKey
 _goal_encoding = AgentOnTileGoal(tile=TILES_REGISTRY[Tiles.GOAL, Colors.GREEN]).encode()
 _rule_encoding = EmptyRule().encode()[None, ...]
 
+
 class DoorKeyDeterministic(DoorKey):
-    def _generate_problem(self, params: EnvParams, key: jax.Array)-> State[EnvCarry]:
-        print(key)
-        print(type(key))
-        if key.shape[0] == 1:  # If key has only one element, behave like DoorKey
-            return super()._generate_problem(params, key)
-        
-        door_pos, wall_pos, key_x, key_y, seed = key
+    """
+    A deterministic variant of DoorKey where the environment is reset
+    using a predefined position (`pos`).
+    """
 
-        seed = jax.random.PRNGKey(seed.astype(jnp.uint32))
-        seed, _seed = jax.random.split(seed)
-        seeds = jax.random.split(_seed, num=2)  # For randomizing agent position and direction
+    def __init__(self, pos: Optional[jax.Array] = None, **kwargs):
+        """
+        Initializes the environment with an optional deterministic `pos`.
 
+        Args:
+            pos (Optional[jax.Array]): Predefined positions (door, wall, key).
+            kwargs: Additional parameters (ignored for now).
+        """
+        self.pos = pos  # Store deterministic position
+
+    def _generate_problem(self, params: EnvParams, key: jax.Array) -> State[EnvCarry]:
+        """Generates the problem using a predefined `pos` instead of random sampling."""
+        if self.pos is None:
+            #raise ValueError("The position attribute 'pos' is not set. Provide `pos` when creating the environment.")
+            return super()._generate_problem(params, key)  # ✅ Use normal random behavior if pos isn't set
+
+        # Unpack the predefined positions
+        door_pos, wall_pos, key_x, key_y = self.pos[:4]
+        #print(type(door_pos))
+
+        # Handle PRNG key correctly
+        # seed = jax.random.PRNGKey(jnp.asarray(key, dtype=jnp.uint32))
+        # seeds = jax.random.split(seed, num=2)  # For randomizing agent position and direction
+        try:
+            # Ensure door is between 1 and height-1
+            if door_pos <= 0 or door_pos >= params.height - 1:
+                raise ValueError("Door position must be between 1 and height-2.")
+
+            # Ensure wall is between 2 and width-2
+            if wall_pos <= 1 or wall_pos >= params.width - 2:
+                raise ValueError("Wall position must be between 2 and width-3.")
+
+            # Ensure key_x is between 1 and the wall position (key should be left of wall)
+            if key_x <= 0 or key_x >= wall_pos:
+                raise ValueError("Key position must be between 1 and the wall position.")
+
+            # Ensure key_y is between 1 and height-1 (within grid bounds)
+            if key_y <= 0 or key_y >= params.height - 1:
+                raise ValueError("Key position must be between 1 and height-2.")
+
+        except ValueError as e:
+            raise ValueError(f"Invalid predefined positions: {e}")
+
+        key, _key = jax.random.split(key)
+        keys = jax.random.split(_key, num=2)
+
+        # Initialize the grid and place objects
         grid = room(params.height, params.width)
         grid = vertical_line(grid, wall_pos, 0, params.height, tile=TILES_REGISTRY[Tiles.WALL, Colors.GREY])
         grid = grid.at[door_pos, wall_pos].set(TILES_REGISTRY[Tiles.DOOR_LOCKED, Colors.YELLOW])
@@ -36,9 +80,10 @@ class DoorKeyDeterministic(DoorKey):
 
         # Mask positions after the wall so the agent starts on the opposite side of the goal
         mask = coordinates_mask(grid, (params.height, wall_pos), comparison_fn=jnp.less)
-        agent_coords = sample_coordinates(seeds[0], grid, num=1, mask=mask)[0]
+        agent_coords = sample_coordinates(keys[0], grid, num=1, mask=mask)[0]
 
-        agent = AgentState(position=agent_coords, direction=sample_direction(seeds[1]))
+        agent = AgentState(position=agent_coords, direction=sample_direction(keys[1]))
+
         state = State(
             key=key,
             step_num=jnp.asarray(0),
