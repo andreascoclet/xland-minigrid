@@ -51,23 +51,22 @@ class DoorKeyDeterministic(DoorKey):
         try:
             # Ensure door is between 1 and height-1
             if door_pos <= 0 or door_pos >= params.height - 1:
-                raise ValueError(f"Door position must be between 1 and {params.height-2}.")
+                raise ValueError(f"Door position must be between 1 and {params.height - 2} for grid of height {params.height} and width {params.width}.")
 
             # Ensure wall is between 2 and width-2
             if wall_pos <= 1 or wall_pos >= params.width - 2:
-                raise ValueError(f"Wall position must be between 2 and  {params.width-3}.")
+                raise ValueError(f"Wall position must be between 2 and {params.width - 3} for grid of height {params.height} and width {params.width}.")
 
             # Ensure key_x is between 1 and the wall position (key should be left of wall)
             if key_x <= 0 or key_x >= wall_pos:
-                raise ValueError(f"Key position must be between 1 and the wall position = {wall_pos}.")
+                raise ValueError(f"Key position must be between 1 and the wall position = {wall_pos} for grid of height {params.height} and width {params.width}.")
 
             # Ensure key_y is between 1 and height-1 (within grid bounds)
             if key_y <= 0 or key_y >= params.height - 1:
-                raise ValueError(f"Key position must be between 1 and {params.height-2}.")
+                raise ValueError(f"Key position must be between 1 and {params.height - 2} for grid of height {params.height} and width {params.width}.")
 
         except ValueError as e:
             raise ValueError(f"Invalid predefined positions: {e}")
-
         key, _key = jax.random.split(key)
         keys = jax.random.split(_key, num=2)
 
