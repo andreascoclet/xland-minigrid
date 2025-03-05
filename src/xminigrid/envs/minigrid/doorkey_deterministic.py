@@ -51,19 +51,19 @@ class DoorKeyDeterministic(DoorKey):
         try:
             # Ensure door is between 1 and height-1
             if door_pos <= 0 or door_pos >= params.height - 1:
-                raise ValueError("Door position must be between 1 and height-2.")
+                raise ValueError(f"Door position must be between 1 and {params.height-2}.")
 
             # Ensure wall is between 2 and width-2
             if wall_pos <= 1 or wall_pos >= params.width - 2:
-                raise ValueError("Wall position must be between 2 and width-3.")
+                raise ValueError(f"Wall position must be between 2 and  {params.width-3}.")
 
             # Ensure key_x is between 1 and the wall position (key should be left of wall)
             if key_x <= 0 or key_x >= wall_pos:
-                raise ValueError("Key position must be between 1 and the wall position.")
+                raise ValueError(f"Key position must be between 1 and the wall position = {wall_pos}.")
 
             # Ensure key_y is between 1 and height-1 (within grid bounds)
             if key_y <= 0 or key_y >= params.height - 1:
-                raise ValueError("Key position must be between 1 and height-2.")
+                raise ValueError(f"Key position must be between 1 and {params.height-2}.")
 
         except ValueError as e:
             raise ValueError(f"Invalid predefined positions: {e}")
