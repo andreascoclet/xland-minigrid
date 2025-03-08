@@ -33,16 +33,16 @@ class DoorKeyDeterministic(DoorKey):
             pos (Optional[jax.Array]): Predefined positions (door, wall, key).
             kwargs: Additional parameters (ignored for now).
         """
-        self.pos = pos  # Store deterministic position
+        # self.pos = pos  # Store deterministic position
 
     def _generate_problem(self, params: EnvParams, key: jax.Array) -> State[EnvCarry]:
         """Generates the problem using a predefined `pos` instead of random sampling."""
-        if self.pos is None:
+        if params.det_positions is None:
             #raise ValueError("The position attribute 'pos' is not set. Provide `pos` when creating the environment.")
             return super()._generate_problem(params, key)  # ✅ Use normal random behavior if pos isn't set
 
         # Unpack the predefined positions
-        door_pos, wall_pos, key_x, key_y = self.pos[:4]
+        door_pos, wall_pos, key_x, key_y = params.det_positions
         #print(type(door_pos))
 
         # Handle PRNG key correctly

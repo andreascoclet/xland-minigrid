@@ -28,6 +28,7 @@ class EnvParams(struct.PyTreeNode):
     view_size: int = struct.field(pytree_node=False, default=7)
     max_steps: Optional[int] = struct.field(pytree_node=False, default=None)
     render_mode: str = struct.field(pytree_node=False, default="rgb_array")
+    det_positions: Optional[tuple] = struct.field(pytree_node=False, default=None) # TODO: check pytree and default
 
 
 EnvParamsT = TypeVar("EnvParamsT", bound="EnvParams")

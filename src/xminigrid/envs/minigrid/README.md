@@ -36,7 +36,7 @@ Next, define the positions for the door, wall, and key. The `pos` argument shoul
 
 ### Step 3: Create the Environment
 
-Use the `xminigrid.make` function to create the `DoorKeyDeterministic` environment. Pass the environment name (e.g., `"MiniGrid-DoorKeyDet-16x16"`) to the `make` function. After creating the environment, assign the `pos` list (defined in Step 2) to the `env.pos` attribute.
+Use the `xminigrid.make` function to create the `DoorKeyDeterministic` environment. Pass the environment name (e.g., `"MiniGrid-DoorKeyDet-16x16"`) and det_positions= (door_pos, wall_pos, key_x, key_y) to the `make` function 
 
 ---
 
@@ -48,7 +48,7 @@ Reset the environment using the `reset` method. This method is JIT-compatible, m
 
 ### Step 5: Render the Environment
 
-To visualize the environment, use the `render` method. This method generates an image of the current state of the environment. You can display this image using a plotting library like `matplotlib`. Define a helper function (e.g., `show_img`) to render and display the image.
+To visualize the environment, use the `render` method. This method generates an image of the current state of the environment.  Define a helper function (e.g., `show_img`) to render and display the image.
 
 ---
 
@@ -84,11 +84,10 @@ door_pos = 8
 wall_pos = 8
 key_x = 4
 key_y = 14
-pos = [door_pos, wall_pos, key_x, key_y]  # Always a list
+pos = (door_pos, wall_pos, key_x, key_y)  # Always a tuple
 
 # Step 3: Create the environment
-env, env_params = xminigrid.make("MiniGrid-DoorKeyDet-16x16")
-env.pos = pos
+env, env_params = xminigrid.make("MiniGrid-DoorKeyDet-16x16", det_positions=pos)
 
 # Step 4: Reset the environment
 timestep = jax.jit(env.reset)(env_params, reset_key)
