@@ -42,7 +42,7 @@ class DoorKeyDeterministic(DoorKey):
             return super()._generate_problem(params, key)  # ✅ Use normal random behavior if pos isn't set
 
         # Unpack the predefined positions
-        door_pos, wall_pos, key_x, key_y = params.det_positions
+        door_pos, wall_pos, key_y, key_x = params.det_positions
         #print(type(door_pos))
 
         # Handle PRNG key correctly

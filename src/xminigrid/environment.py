@@ -63,13 +63,16 @@ class Environment(abc.ABC, Generic[EnvParamsT, EnvCarryT]):
     # Why timestep + state at once, and not like in Jumanji? To be able to do autoresets in gym and envpools styles
     def step(self, params: EnvParamsT, timestep: TimeStep[EnvCarryT], action: IntOrArray) -> TimeStep[EnvCarryT]:
         new_grid, new_agent, changed_position = take_action(timestep.state.grid, timestep.state.agent, action)
-        new_grid, new_agent = check_rule(timestep.state.rule_encoding, new_grid, new_agent, action, changed_position)
+        # new_grid, new_agent = check_rule(timestep.state.rule_encoding, new_grid, new_agent, action, changed_position)
 
         new_state = timestep.state.replace(
             grid=new_grid,
             agent=new_agent,
             step_num=timestep.state.step_num + 1,
         )
+        # new_state = timestep.state.replace(
+        #     step_num=timestep.state.step_num + 1
+        # )
         new_observation = transparent_field_of_view(new_state.grid, new_state.agent, params.view_size, params.view_size)
 
         # checking for termination or truncation, choosing step type

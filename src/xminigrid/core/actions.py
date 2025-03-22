@@ -109,17 +109,81 @@ def toggle(grid: GridState, agent: AgentState) -> ActionOutput:
     return new_grid, agent, next_position
 
 
-def take_action(grid: GridState, agent: AgentState, action: IntOrArray) -> ActionOutput:
-    # This will evaluate all actions.
-    # Can we fix this and choose only one function? It'll speed everything up dramatically.
-    actions = (
-        lambda: move_forward(grid, agent),
-        lambda: turn_clockwise(grid, agent),
-        lambda: turn_counterclockwise(grid, agent),
-        lambda: pick_up(grid, agent),
-        lambda: put_down(grid, agent),
-        lambda: toggle(grid, agent),
-    )
-    new_grid, new_agent, changed_position = jax.lax.switch(action, actions)
+# def take_action(grid: GridState, agent: AgentState, action: IntOrArray) -> ActionOutput:
+#     # This will evaluate all actions.
+#     # Can we fix this and choose only one function? It'll speed everything up dramatically.
+#     actions = (
+#         lambda: move_forward(grid, agent),
+#         lambda: turn_clockwise(grid, agent),
+#         lambda: turn_counterclockwise(grid, agent),
+#         lambda: pick_up(grid, agent),
+#         lambda: put_down(grid, agent),
+#         lambda: toggle(grid, agent),
+#     )
+#     new_grid, new_agent, changed_position = jax.lax.switch(action, actions)
 
-    return new_grid, new_agent, changed_position
+#     return new_grid, new_agent, changed_position
+
+# from functools import partial
+
+# # Predefine the function list without calling them
+# action_fns = (
+#     move_forward,
+#     turn_clockwise,
+#     turn_counterclockwise,
+#     pick_up,
+#     put_down,
+#     toggle,
+# )
+
+# def take_action(grid: GridState, agent: AgentState, action: IntOrArray) -> ActionOutput:
+#     # Bind grid and agent to each function (delayed execution)
+#     bound_actions = tuple(partial(fn, grid, agent) for fn in action_fns)
+
+#     # Only the chosen function is executed by lax.switch
+#     new_grid, new_agent, changed_position = jax.lax.switch(action, bound_actions)
+
+#     return new_grid, new_agent, changed_position
+
+# from functools import partial
+
+# # Predefine the action functions
+# def get_action_fns(grid, agent):
+#     return (
+#         lambda: move_forward(grid, agent),
+#         lambda: turn_clockwise(grid, agent),
+#         lambda: turn_counterclockwise(grid, agent),
+#         lambda: pick_up(grid, agent),
+#         lambda: put_down(grid, agent),
+#         lambda: toggle(grid, agent),
+#     )
+
+# def take_action(grid: GridState, agent: AgentState, action: IntOrArray) -> ActionOutput:
+#     # Create action functions only for current inputs
+#     actions = get_action_fns(grid, agent)
+
+#     # Only the selected action is executed
+#     new_grid, new_agent, changed_position = jax.lax.switch(action, actions)
+
+#     return new_grid, new_agent, changed_position
+
+from functools import partial
+
+# Predefine the function list without calling them
+action_fns = (
+    move_forward,
+    turn_clockwise,
+    turn_counterclockwise,
+    pick_up,
+    put_down,
+    toggle,
+)
+
+def take_action(grid: GridState, agent: AgentState, action: IntOrArray) -> ActionOutput:
+    # Bind grid and agent to each function (delayed execution)
+    # bound_actions = tuple(partial(fn, grid, agent) for fn in action_fns)
+
+    # Only the chosen function is executed by lax.switch
+    # new_grid, new_agent, changed_position = jax.lax.switch(action, bound_actions)
+
+    return action_fns[action](grid, agent)
