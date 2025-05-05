@@ -29,6 +29,7 @@ def crop_field_of_view(grid: GridState, agent: AgentState, height: int, width: i
         ),
     )
     fov_crop = jax.lax.dynamic_slice(grid, start_indices, (height, width, 2))
+    print("fov_crop: ", fov_crop, fov_crop.shape)
 
     return fov_crop
 
@@ -36,6 +37,7 @@ def crop_field_of_view(grid: GridState, agent: AgentState, height: int, width: i
 def transparent_field_of_view(grid: GridState, agent: AgentState, height: int, width: int) -> jax.Array:
     fov_grid = crop_field_of_view(grid, agent, height, width)
     fov_grid = align_with_up(fov_grid, agent.direction)
+    print("fov_grid: ", fov_grid, fov_grid.shape)
 
     # TODO: should we even do this? Agent with good memory can remember what he picked up.
     # WARN: this can overwrite tile the agent is on, GOAL for example.
@@ -46,6 +48,15 @@ def transparent_field_of_view(grid: GridState, agent: AgentState, height: int, w
     # fov_grid = fov_grid.at[height - 1, width // 2].set(agent.pocket)
 
     return fov_grid
+
+def full_field_of_view(grid: GridState, agent: AgentState, height: int, width: int) -> jax.Array:
+    full_grid = jnp.pad(
+        grid,
+        pad_width=((height, height), (width, width), (0, 0)),
+        constant_values=Tiles.EMPTY,
+    )
+    # print("full_grid: ", full_grid, full_grid.shape)
+    return full_grid
 
 
 # Direct port from original minigrid:

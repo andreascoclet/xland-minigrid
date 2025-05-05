@@ -112,3 +112,13 @@ class RGBImgObservationWrapper(Wrapper):
         timestep = self._env.step(params, timestep, action)
         timestep = self.__convert_obs(timestep)
         return timestep
+    
+    def step_doorkey_deterministic(self, params, timestep, action):
+        timestep = self._env.step_doorkey_deterministic(params, timestep, action)
+        timestep = self.__convert_obs(timestep)
+        return timestep
+    
+    def reset_doorkey_deterministic(self, params, key):
+        timestep = self._env.reset_doorkey_deterministic(params, key)
+        timestep = self.__convert_obs(timestep)
+        return timestep

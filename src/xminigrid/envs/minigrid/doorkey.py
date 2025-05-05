@@ -22,6 +22,9 @@ class DoorKey(Environment[EnvParams, EnvCarry]):
         if params.max_steps is None:
             # formula directly taken from MiniGrid
             params = params.replace(max_steps=10 * (params.height * params.width))
+
+        if params.max_steps_reward is None:
+            params = params.replace(max_steps_reward=10 * (params.height * params.width))
         return params
 
     def _generate_problem(self, params: EnvParams, key: jax.Array) -> State[EnvCarry]:
