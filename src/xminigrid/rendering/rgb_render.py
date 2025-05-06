@@ -242,7 +242,10 @@ def render(
     img = np.full((height_px, width_px, 3), dtype=np.uint8, fill_value=255)
 
     # compute agent fov highlighting
-    highlight_mask = get_highlight_mask(grid, agent, int(view_size))
+    if view_size == 0:
+        highlight_mask = np.zeros((grid.shape[0], grid.shape[1]), dtype=np.bool_)
+    else:
+        highlight_mask = get_highlight_mask(grid, agent, int(view_size))
 
     for y in range(grid.shape[0]):
         for x in range(grid.shape[1]):
