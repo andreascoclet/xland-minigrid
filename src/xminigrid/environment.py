@@ -182,7 +182,7 @@ class Environment(abc.ABC, Generic[EnvParamsT, EnvCarryT]):
     ) -> np.ndarray | str:
         if params.render_mode == "rgb_array":
             return rgb_render(
-                np.asarray(timestep.state.grid), timestep.state.agent, params.view_size
+                np.asarray(timestep.state.grid), timestep.state.agent, params.view_size, tile_size=16
             )
         elif params.render_mode == "rich_text":
             return text_render(timestep.state.grid, timestep.state.agent)
