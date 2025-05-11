@@ -29,7 +29,7 @@ def crop_field_of_view(grid: GridState, agent: AgentState, height: int, width: i
         ),
     )
     fov_crop = jax.lax.dynamic_slice(grid, start_indices, (height, width, 2))
-    print("fov_crop: ", fov_crop, fov_crop.shape)
+    #print("fov_crop: ", fov_crop, fov_crop.shape)
 
     return fov_crop
 
@@ -37,7 +37,7 @@ def crop_field_of_view(grid: GridState, agent: AgentState, height: int, width: i
 def transparent_field_of_view(grid: GridState, agent: AgentState, height: int, width: int) -> jax.Array:
     fov_grid = crop_field_of_view(grid, agent, height, width)
     fov_grid = align_with_up(fov_grid, agent.direction)
-    print("fov_grid: ", fov_grid, fov_grid.shape)
+    #print("fov_grid: ", fov_grid, fov_grid.shape)
 
     # TODO: should we even do this? Agent with good memory can remember what he picked up.
     # WARN: this can overwrite tile the agent is on, GOAL for example.
