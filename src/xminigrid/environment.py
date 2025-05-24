@@ -113,9 +113,11 @@ class Environment(abc.ABC, Generic[EnvParamsT, EnvCarryT]):
         assert params.max_steps is not None
         truncated = jnp.equal(new_state.step_num, params.max_steps)
 
+        assert params.max_steps_reward is not None
         reward = jax.lax.select(
-            terminated, 1.0 - 0.9 * (new_state.step_num / params.max_steps), 0.0
+            terminated, 1.0 - 0.9 * (new_state.step_num / params.max_steps_reward), 0.0
         )
+
 
         step_type = jax.lax.select(terminated | truncated, StepType.LAST, StepType.MID)
         discount = jax.lax.select(terminated, jnp.asarray(0.0), jnp.asarray(1.0))
