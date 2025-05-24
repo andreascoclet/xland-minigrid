@@ -75,7 +75,7 @@ def _render_obs(obs: jax.Array) -> jax.Array:
     agent_tile = TILE_W_AGENT_CACHE[obs_flat_idxs[view_size - 1, view_size // 2]]
     rendered_obs = rendered_obs.at[view_size - 1, view_size // 2].set(agent_tile)
     # [view_size, view_size, tile_size, tile_size, 3] -> [view_size * tile_size, view_size * tile_size, 3]
-    rendered_obs = rendered_obs.transpose((0, 2, 1, 3, 4)).reshape(view_size * TILE_SIZE, view_size * TILE_SIZE, 3)
+    rendered_obs = rendered_obs.transpose((0, 2, 1, 3, 4)).reshape(view_size * TILE_SIZE, view_size * TILE_SIZE, 3)/255
 
     return rendered_obs
 
