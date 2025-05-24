@@ -7,6 +7,19 @@ import os
 import jax
 import jax.numpy as jnp
 import numpy as np
+import matplotlib.pyplot as plt  # 🔧ADDED for show_img
+
+
+
+
+# 🔧ADDED show_img for visualization
+def show_img(img, dpi=32):
+    plt.figure(dpi=dpi)
+    plt.axis('off')
+    plt.imshow(img)
+    plt.show()
+
+
 
 from ..benchmarks import load_bz2_pickle, save_bz2_pickle
 from ..core.constants import NUM_COLORS, NUM_LAYERS, TILES_REGISTRY
@@ -63,21 +76,29 @@ TILE_CACHE = load_bz2_pickle(cache_path)["tile_cache"]
 TILE_W_AGENT_CACHE = load_bz2_pickle(cache_path)["tile_agent_cache"]
 
 
-# rendering with cached tiles
-def _render_obs(obs: jax.Array) -> jax.Array:
-    view_size = obs.shape[0]
+def _render_obs(timestep) -> jax.Array:
+    grid = timestep.state.grid
+    agent_pos = timestep.state.agent.position   # JAX array [2]
+    agent_dir = timestep.state.agent.direction  # JAX scalar
 
-    obs_flat_idxs = obs[:, :, 0] * NUM_COLORS + obs[:, :, 1]
-    # render all tiles
+    H, W = grid.shape[:2]
+    obs_flat_idxs = grid[:, :, 0] * NUM_COLORS + grid[:, :, 1]
+
+    # Render background tiles
     rendered_obs = jnp.take(TILE_CACHE, obs_flat_idxs, axis=0)
 
-    # add agent tile
-    agent_tile = TILE_W_AGENT_CACHE[obs_flat_idxs[view_size - 1, view_size // 2]]
-    rendered_obs = rendered_obs.at[view_size - 1, view_size // 2].set(agent_tile)
-    # [view_size, view_size, tile_size, tile_size, 3] -> [view_size * tile_size, view_size * tile_size, 3]
-    rendered_obs = rendered_obs.transpose((0, 2, 1, 3, 4)).reshape(view_size * TILE_SIZE, view_size * TILE_SIZE, 3)
+    # Use pre-rendered agent tile (assuming only one direction supported here)
+    agent_y, agent_x = agent_pos[0], agent_pos[1]
+    idx = obs_flat_idxs[agent_y, agent_x]
+    agent_tile = TILE_W_AGENT_CACHE[idx]  # Direction-specific cache not handled here
 
-    return rendered_obs
+    # Set agent tile in rendered image
+    rendered_obs = rendered_obs.at[agent_y, agent_x].set(agent_tile)
+
+    # Flatten to RGB image
+    final_img = rendered_obs.transpose((0, 2, 1, 3, 4)).reshape(H * TILE_SIZE, W * TILE_SIZE, 3)
+
+    return final_img
 
 
 class RGBImgObservationWrapper(Wrapper):
@@ -94,15 +115,9 @@ class RGBImgObservationWrapper(Wrapper):
         return obs_shape
 
     def __convert_obs(self, timestep):
-        if isinstance(timestep.observation, dict):
-            assert "img" in timestep.observation
-            rendered_obs = {**timestep.observation, **{"img": _render_obs(timestep.observation["img"])}}
-        else:
-            rendered_obs = _render_obs(timestep.observation)
-
-        timestep = timestep.replace(observation=rendered_obs)
-        return timestep
-
+        rendered_img = _render_obs(timestep)
+        return timestep.replace(observation=rendered_img)
+    
     def reset(self, params, key):
         timestep = self._env.reset(params, key)
         timestep = self.__convert_obs(timestep)

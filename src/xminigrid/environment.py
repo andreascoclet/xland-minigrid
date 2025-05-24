@@ -61,7 +61,7 @@ class Environment(abc.ABC, Generic[EnvParamsT, EnvCarryT]):
             step_type=StepType.FIRST,
             reward=jnp.asarray(0.0),
             discount=jnp.asarray(1.0),
-            observation=transparent_field_of_view(
+            observation=full_field_of_view(
                 state.grid, state.agent, params.view_size, params.view_size
             ),
         )
@@ -97,7 +97,7 @@ class Environment(abc.ABC, Generic[EnvParamsT, EnvCarryT]):
         # new_state = timestep.state.replace(
         #     step_num=timestep.state.step_num + 1
         # )
-        new_observation = transparent_field_of_view(
+        new_observation = full_field_of_view(
             new_state.grid, new_state.agent, params.view_size, params.view_size
         )
 
