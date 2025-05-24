@@ -155,7 +155,7 @@ def _render_obs(timestep) -> jax.Array:
     rendered_obs = rendered_obs.at[ry, rx].set(agent_tile)
 
     # 5. Flatten to RGB
-    rgb_img = rendered_obs.transpose((0, 2, 1, 3, 4)).reshape(H * TILE_SIZE, W * TILE_SIZE, 3)
+    rgb_img = rendered_obs.transpose((0, 2, 1, 3, 4)).reshape(H * TILE_SIZE, W * TILE_SIZE, 3)/255
     return rgb_img
 
 class RGBImgObservationWrapper(Wrapper):
