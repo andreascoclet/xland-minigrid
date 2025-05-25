@@ -117,7 +117,7 @@ def take_action(grid: GridState, agent: AgentState, action: IntOrArray) -> Actio
         lambda: turn_clockwise(grid, agent),
         lambda: turn_counterclockwise(grid, agent),
         lambda: pick_up(grid, agent),
-        lambda: put_down(grid, agent),
+        #lambda: put_down(grid, agent),
         lambda: toggle(grid, agent),
     )
     new_grid, new_agent, changed_position = jax.lax.switch(action, actions)
