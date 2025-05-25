@@ -32,7 +32,7 @@ FORCE_RELOAD = os.environ.get("XLAND_MINIGRID_RELOAD_CACHE", False)
 
 def build_cache(tiles: np.ndarray, tile_size: int = 32) -> tuple[np.ndarray, np.ndarray]:
     cache = np.zeros((tiles.shape[0], tiles.shape[1], tile_size, tile_size, 3), dtype=np.uint8)
-    agent_cache = np.zeros((tiles.shape[0], tiles.shape[1], tile_size, tile_size, 3), dtype=np.uint8)
+    agent_cache = np.zeros((tiles.shape[0], tiles.shape[1], 4, tile_size, tile_size, 3), dtype=np.uint8)
 
     for y in range(tiles.shape[0]):
         for x in range(tiles.shape[1]):
@@ -45,14 +45,15 @@ def build_cache(tiles: np.ndarray, tile_size: int = 32) -> tuple[np.ndarray, np.
             )
             cache[y, x] = tile_img
 
-            # rendering agent on top
-            tile_w_agent_img = render_tile(
-                tile=tuple(tiles[y, x]),
-                agent_direction=0,
-                highlight=False,
-                tile_size=int(tile_size),
-            )
-            agent_cache[y, x] = tile_w_agent_img
+            # render 4 agent orientations
+            for direction in range(4):
+                tile_w_agent_img = render_tile(
+                    tile=tuple(tiles[y, x]),
+                    agent_direction=direction,
+                    highlight=False,
+                    tile_size=tile_size,
+                )
+                agent_cache[y, x, direction] = tile_w_agent_img
 
     return cache, agent_cache
 
@@ -67,7 +68,7 @@ if not os.path.exists(cache_path) or FORCE_RELOAD:
     print("Building rendering cache, may take a while...")
     TILE_CACHE, TILE_W_AGENT_CACHE = build_cache(np.asarray(TILES_REGISTRY), tile_size=TILE_SIZE)
     TILE_CACHE = jnp.asarray(TILE_CACHE).reshape(-1, TILE_SIZE, TILE_SIZE, 3)
-    TILE_W_AGENT_CACHE = jnp.asarray(TILE_W_AGENT_CACHE).reshape(-1, TILE_SIZE, TILE_SIZE, 3)
+    TILE_W_AGENT_CACHE = jnp.asarray(TILE_W_AGENT_CACHE).reshape(-1, 4, TILE_SIZE, TILE_SIZE, 3)
 
     print(f"Done. Cache is saved to {cache_path} and will be reused on consequent runs.")
     save_bz2_pickle({"tile_cache": TILE_CACHE, "tile_agent_cache": TILE_W_AGENT_CACHE}, cache_path)
@@ -132,30 +133,34 @@ def rotate_grid(grid, direction):
     return jax.lax.switch(direction, (rot0, rot1, rot2, rot3))
 
 # ✅ Core rendering logic
-def _render_obs(timestep) -> jax.Array:
+def _render_obs(timestep, rotated: bool = False) -> jax.Array:
+    #print(f"using new render")
     grid = timestep.state.grid
     agent_pos = timestep.state.agent.position
     agent_dir = timestep.state.agent.direction
 
     H, W = grid.shape[:2]
 
-    # 1. Rotate symbolic grid
-    rotated_grid = rotate_grid(grid, agent_dir)
+    # if rotated:
+    #     # 1. Rotate symbolic grid
+    #     rotated_grid = rotate_grid(grid, agent_dir)
 
-    # 2. Rotate agent position
-    ry, rx = rotate_pos(agent_pos, agent_dir, H, W)
+    #     # 2. Rotate agent position
+    #     ry, rx = rotate_pos(agent_pos, agent_dir, H, W)
+    # else:
+    #     # Use unrotated grid and agent position
+    #     rotated_grid = grid
+    #     ry, rx = agent_pos[0], agent_pos[1]
 
     # 3. Render background
-    idx = rotated_grid[:, :, 0] * NUM_COLORS + rotated_grid[:, :, 1]
+    idx = grid[:, :, 0] * NUM_COLORS + grid[:, :, 1]
     rendered_obs = jnp.take(TILE_CACHE, idx, axis=0)
 
-    # 4. Render agent facing UP
-    tile = tuple(rotated_grid[ry, rx])
-    agent_tile = TILE_W_AGENT_CACHE[idx[ry, rx]]
-    rendered_obs = rendered_obs.at[ry, rx].set(agent_tile)
-
+    # 4. Render agent (always facing UP)
+    agent_tile = TILE_W_AGENT_CACHE[idx[agent_pos[0], agent_pos[1]], agent_dir]
+    rendered_obs = rendered_obs.at[agent_pos[0], agent_pos[1]].set(agent_tile)
     # 5. Flatten to RGB
-    rgb_img = rendered_obs.transpose((0, 2, 1, 3, 4)).reshape(H * TILE_SIZE, W * TILE_SIZE, 3)/255
+    rgb_img = rendered_obs.transpose((0, 2, 1, 3, 4)).reshape(H * TILE_SIZE, W * TILE_SIZE, 3) / 255
     return rgb_img
 
 class RGBImgObservationWrapper(Wrapper):
