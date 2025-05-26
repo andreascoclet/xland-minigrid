@@ -1,7 +1,7 @@
 import jax.numpy as jnp
 from flax import struct
 
-NUM_ACTIONS = 6
+NUM_ACTIONS = 5
 
 # GRID: [tile, color]
 NUM_LAYERS = 2
